@@ -49,7 +49,8 @@ def plot_shots(df, ax, pitch):
             y = float(x['location'][1]), # transformed to list so we can grab the second element
             ax = ax,
             s = 1000 * x['shot_statsbomb_xg'], # will scall dot based on the xg value (larger for highest goal)
-            color = 'green' if x['shot_outcome'] == 'Goal' else 'white',
+            color = 'orange' if (x['shot_outcome'] == 'Goal') and (x['shot_type'] == 'Penalty') else 
+                ('green' if (x['shot_outcome'] == 'Goal') and (x['shot_type'] != 'Penalty') else 'white'), 
             edgecolors = 'black',
             alpha = 1 if x['type'] == 'goal' else .5, # makes the goals easier to see
             zorder = 2 if x['type'] == 'goal' else 1 # just ordering goals on top of all dots

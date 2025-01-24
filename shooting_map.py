@@ -3,11 +3,11 @@ import pandas as pd
 import json
 from mplsoccer import VerticalPitch
 
-st.title("Euros 2024 Shotmap")
+st.title("UEFA Euros Shotmap")
 
-st.subheader("Select the team/player to see the shots taken throughout the tournament")
+st.subheader("Select the team, and then the player to see shots and goals since Euros 2020")
 
-df = pd.read_csv('euros_2024_shot_map.csv')
+df = pd.read_csv('euros_shot_data.csv')
 
 # filter for shots only
 df = df[df['type'] == 'Shot'].reset_index(drop=True)
@@ -30,8 +30,20 @@ player = st.selectbox('Select Player:', df[df['team'] == team]['player'].sort_va
 # select when the goals are scored
 
 
-st.divider()
+# side panel
+with st.sidebar:
+    year = st.segmented_control(
+            label = 'Select Tournament Year:', 
+            options = [2020, 2024],
+            selection_mode = "multi",
+            default = [2024])
 
+# filter data based on the year input
+df = df[df['edition'].isin(year)]
+
+
+st.divider()
+##############################################################################
 
 
 # function for filtering data
@@ -60,10 +72,11 @@ def plot_shots(df, ax, pitch):
             x = float(x['location'][0]), # transformed to list so we can grab the first element
             y = float(x['location'][1]), # transformed to list so we can grab the second element
             ax = ax,
-            s = 1000 * x['shot_statsbomb_xg'], # will scall dot based on the xg value (larger for highest goal)
+            s = 1000 * x['shot_statsbomb_xg'], # will scale dot based on the xg value (larger for highest goal)
             color = 'orange' if (x['shot_outcome'] == 'Goal') and (x['shot_type'] == 'Penalty') else 
-                ('green' if (x['shot_outcome'] == 'Goal') and (x['shot_type'] != 'Penalty') else 'white'), 
+                ('#1f6915' if (x['shot_outcome'] == 'Goal') and (x['shot_type'] != 'Penalty') else 'white'), 
             edgecolors = 'black',
+            linewidth = 2,
             alpha = 1 if x['type'] == 'goal' else .5, # makes the goals easier to see
             zorder = 2 if x['type'] == 'goal' else 1 # just ordering goals on top of all dots
         )
@@ -72,6 +85,7 @@ def plot_shots(df, ax, pitch):
 # initially will take time to print for first use
 # but check the different options
 plot_shots(filtered_df, ax, pitch)
+
 
 # actually draws this to the web app
 st.pyplot(fig)

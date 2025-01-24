@@ -115,8 +115,8 @@ def filter_scorers(df, team):
     # if no team is selected - output all
     else:
         df = df.groupby(['player', 'team'])['shot_outcome'].count().reset_index()
-        df.rename(columns={'shot_outcome':'Goals', 'team':'Nation'}, inplace=True)
-        df_sorted = df.sort_values(by='Goals', ascending=False).set_index(['player', 'Nation'])
+        df.rename(columns={'shot_outcome':'Goals', 'player':'Player', 'team':'Nation'}, inplace=True)
+        df_sorted = df.sort_values(by='Goals', ascending=False).style.hide_index()
     
 
     return df_sorted

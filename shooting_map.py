@@ -16,11 +16,23 @@ df = df[df['type'] == 'Shot'].reset_index(drop=True)
 # comes as a list - converts the coordinates into lists instead of string
 df['location'] = df['location'].apply(json.loads)
 
+
+############## select team and players
 # filter df - create select box
 team = st.selectbox('Select Team:', df['team'].sort_values().unique(), index=None)
 # select player
 player = st.selectbox('Select Player:', df[df['team'] == team]['player'].sort_values().unique(), index=None)
 # note, the index = None, means there is no 'default' option selected
+
+# work with time of game
+# game_times = ['1st Half', '2nd Half', 'Extra Time 1st Half', 'Extra Time 2nd Half', 'Penalty Kicks']
+# half = st.multiselect('Select Half', options = game_times, default = game_times)
+# select when the goals are scored
+
+
+st.divider()
+
+
 
 # function for filtering data
 def filter_data(df, team, player):
@@ -63,3 +75,35 @@ plot_shots(filtered_df, ax, pitch)
 
 # actually draws this to the web app
 st.pyplot(fig)
+
+
+
+######### show table of summary scorers for country
+st.divider()
+st.subheader("Top Goal Scorers:")
+
+# create function to filter the dataset again but no need for player 
+def filter_scorers(df, team):
+    df = df[df['shot_outcome'] == 'Goal'] # filter for goals only
+
+    # if a team is selected
+    if team:
+        df = df[df['team'] == team] # filter for team
+        
+        # group by the players and count goals
+        df = df.groupby(['player'])['shot_outcome'].count().reset_index()
+        df.rename(columns={'shot_outcome':'Goals'}, inplace=True)
+        df_sorted = df.sort_values(by='Goals', ascending=False).set_index('player')
+
+    # if no team is selected
+    else:
+        df = df.groupby(['player'])['shot_outcome'].count().reset_index()
+        df.rename(columns={'shot_outcome':'Goals'}, inplace=True)
+        df_sorted = df.sort_values(by='Goals', ascending=False).set_index('player')
+    
+
+    return df_sorted
+        
+goal_table = filter_scorers(df, team)
+st.table(goal_table)
+

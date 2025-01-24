@@ -92,8 +92,11 @@ st.pyplot(fig)
 
 
 
-######### show table of summary scorers for country
+
 st.divider()
+#######################################################
+
+# show table of summary scorers for country
 st.subheader("Top Goal Scorers:")
 
 # create function to filter the dataset again but no need for player 
@@ -109,15 +112,16 @@ def filter_scorers(df, team):
         df.rename(columns={'shot_outcome':'Goals'}, inplace=True)
         df_sorted = df.sort_values(by='Goals', ascending=False).set_index('player')
 
-    # if no team is selected
+    # if no team is selected - output all
     else:
-        df = df.groupby(['player'])['shot_outcome'].count().reset_index()
+        df = df.groupby(['player', 'team'])['shot_outcome'].count().reset_index()
         df.rename(columns={'shot_outcome':'Goals'}, inplace=True)
-        df_sorted = df.sort_values(by='Goals', ascending=False).set_index('player')
+        df_sorted = df.sort_values(by='Goals', ascending=False)
     
 
     return df_sorted
         
 goal_table = filter_scorers(df, team)
+# output the table 
 st.table(goal_table)
 

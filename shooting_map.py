@@ -5,7 +5,7 @@ from mplsoccer import VerticalPitch
 
 st.title("UEFA Euros Shotmap")
 
-st.subheader("Select the team, and then the player to see shots and goals since Euros 2020")
+st.subheader("Select the team, and then the player to see shots and goals from Euros 2020 to Euros 2024")
 
 df = pd.read_csv('euros_shot_data.csv')
 
@@ -23,23 +23,28 @@ team = st.selectbox('Select Team:', df['team'].sort_values().unique(), index=Non
 # select player
 player = st.selectbox('Select Player:', df[df['team'] == team]['player'].sort_values().unique(), index=None)
 # note, the index = None, means there is no 'default' option selected
+# select year
+year = st.segmented_control(label = 'Select Tournament Year(s):', 
+            options = [2020, 2024],
+            selection_mode = "multi",
+            default = [2024])
+
+# select shot type
+shot_type = st.segmented_control(label = 'Select Shot Type(s):',
+                                 options = df['shot_type'].sort_values().unique(),
+                                 selection_mode = 'multi',
+                                 default = df['shot_type'].sort_values().unique())
+
 
 # work with time of game
 # game_times = ['1st Half', '2nd Half', 'Extra Time 1st Half', 'Extra Time 2nd Half', 'Penalty Kicks']
 # half = st.multiselect('Select Half', options = game_times, default = game_times)
 # select when the goals are scored
 
-
-# side panel
-with st.sidebar:
-    year = st.segmented_control(
-            label = 'Select Tournament Year:', 
-            options = [2020, 2024],
-            selection_mode = "multi",
-            default = [2024])
-
 # filter data based on the year input
 df = df[df['edition'].isin(year)]
+# filter based on shot type
+df = df[df['shot_type'].isin(shot_type)]
 
 
 st.divider()
@@ -109,14 +114,17 @@ def filter_scorers(df, team):
         
         # group by the players and count goals
         df = df.groupby(['player'])['shot_outcome'].count().reset_index()
-        df.rename(columns={'shot_outcome':'Goals'}, inplace=True)
-        df_sorted = df.sort_values(by='Goals', ascending=False).set_index('player')
+        df.rename(columns={'shot_outcome':'Goals', 'player':'Player'}, inplace=True)
+        df_sorted = df.sort_values(by='Goals', ascending=False).reset_index(drop=True)
 
     # if no team is selected - output all
     else:
         df = df.groupby(['player', 'team'])['shot_outcome'].count().reset_index()
         df.rename(columns={'shot_outcome':'Goals', 'player':'Player', 'team':'Nation'}, inplace=True)
-        df_sorted = df.sort_values(by='Goals', ascending=False).style.hide_index()
+        df_sorted = df.sort_values(by='Goals', ascending=False).reset_index(drop=True)
+
+        #blankIndex = [''] * len(df_sorted)
+        #df_sorted.index = blankIndex
     
 
     return df_sorted
@@ -125,3 +133,8 @@ goal_table = filter_scorers(df, team)
 # output the table 
 st.table(goal_table)
 
+
+# create a tab of goals logs per player and when they scored
+# retrieve the meta data from the sb.matches function
+# try a join with the player selected
+# create a log of their goals (if any)
